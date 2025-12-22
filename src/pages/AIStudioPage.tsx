@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Header } from '../components/Header';
 import { MangaButton } from '../components/ui/MangaButton';
 import { Sparkles, Download, AlertCircle, Loader2 } from 'lucide-react';
@@ -21,8 +21,10 @@ export function AIStudioPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState('');
   const [error, setError] = useState('');
-  const [stylePreset, setStylePreset] = useState('Anime');
   const [publishMessage, setPublishMessage] = useState('');
+
+  const MAX_PROMPT_LENGTH = 100;
+  const isPromptDisabled = !selectedCategory || !selectedSubCategory;
   // Handle category change - reset sub-category when category changes
   const handleCategoryChange = (category: Category) => {
     setSelectedCategory(category);
@@ -30,8 +32,16 @@ export function AIStudioPage() {
   };
 
   const handleGenerate = async () => {
-    if (!prompt || !selectedCategory || !selectedSubCategory) {
-      setError('Please enter a prompt and select both category and sub-category');
+    if (!selectedCategory || !selectedSubCategory) {
+      setError('Please select both category and sub-category first');
+      return;
+    }
+    if (!prompt.trim()) {
+      setError('Please enter a prompt');
+      return;
+    }
+    if (prompt.length > MAX_PROMPT_LENGTH) {
+      setError(`Prompt must be less than ${MAX_PROMPT_LENGTH} characters`);
       return;
     }
     setError('');
@@ -49,7 +59,7 @@ export function AIStudioPage() {
     }
     const newAsset = {
       id: Date.now(),
-      title: `${selectedSubCategory} - ${stylePreset}`,
+      title: `${selectedSubCategory} - AI Generated`,
       price: '$14.99',
       image: generatedImage,
       category: selectedCategory || 'Others',
@@ -109,28 +119,39 @@ export function AIStudioPage() {
               <div className="space-y-6">
                 {/* Prompt Input */}
                 <div>
-                  <label className="block text-sm font-black uppercase tracking-wider mb-2">
-                    <IntlText en="Describe Your Asset" ja="アセットの説明" vi="Mô tả asset của bạn" />
-                  </label>
-                  <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="E.g., A futuristic cyberpunk jacket with neon blue accents..." className="w-full h-32 px-4 py-3 border-4 border-anime-black font-bold focus:outline-none focus:shadow-pop-yellow transition-shadow resize-none" />
-                </div>
-
-                {/* Style Preset */}
-                <div>
-                  <label className="block text-sm font-black uppercase tracking-wider mb-3">
-                    <IntlText en="Style Preset" ja="スタイルプリセット" vi="Phong cách" />
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {['Anime', 'Cyberpunk', 'Kawaii', 'Gothic'].map(p => (
-                      <button
-                        key={p}
-                        onClick={() => setStylePreset(p)}
-                        className={`px-4 py-3 font-bold uppercase tracking-wider border-3 border-anime-black transition-all ${stylePreset === p ? 'bg-anime-yellow text-black shadow-pop' : 'bg-white text-black hover:bg-gray-100'}`}
-                      >
-                        {p}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-black uppercase tracking-wider">
+                      <IntlText en="Describe Your Asset" ja="アセットの説明" vi="Mô tả asset của bạn" />
+                      {isPromptDisabled && (
+                        <span className="text-anime-red ml-2 text-xs normal-case">
+                          (Select category first)
+                        </span>
+                      )}
+                    </label>
+                    <span className={`text-sm font-bold ${prompt.length > MAX_PROMPT_LENGTH ? 'text-anime-red' : 'text-gray-500'
+                      }`}>
+                      {prompt.length}/{MAX_PROMPT_LENGTH}
+                    </span>
                   </div>
+                  <textarea
+                    value={prompt}
+                    onChange={e => {
+                      if (e.target.value.length <= MAX_PROMPT_LENGTH) {
+                        setPrompt(e.target.value);
+                      }
+                    }}
+                    disabled={isPromptDisabled}
+                    placeholder={isPromptDisabled
+                      ? "Please select category and sub-category first..."
+                      : "E.g., A futuristic cyberpunk jacket with neon blue accents..."}
+                    className={`w-full h-32 px-4 py-3 border-4 border-anime-black font-bold focus:outline-none focus:shadow-pop-yellow transition-shadow resize-none ${isPromptDisabled ? 'bg-gray-100 cursor-not-allowed text-gray-400' : ''
+                      }`}
+                  />
+                  {prompt.length > MAX_PROMPT_LENGTH && (
+                    <p className="text-anime-red text-xs font-bold mt-1">
+                      Prompt exceeds maximum length!
+                    </p>
+                  )}
                 </div>
 
                 {/* Main Category Selection */}
@@ -144,8 +165,8 @@ export function AIStudioPage() {
                         key={category}
                         onClick={() => handleCategoryChange(category)}
                         className={`px-4 py-3 font-bold uppercase tracking-wider border-3 border-anime-black transition-all ${selectedCategory === category
-                            ? 'bg-anime-yellow text-black shadow-pop'
-                            : 'bg-white text-black hover:bg-gray-100'
+                          ? 'bg-anime-yellow text-black shadow-pop'
+                          : 'bg-white text-black hover:bg-gray-100'
                           }`}
                       >
                         {category}
@@ -166,8 +187,8 @@ export function AIStudioPage() {
                           key={subCat}
                           onClick={() => setSelectedSubCategory(subCat)}
                           className={`px-4 py-3 font-bold uppercase tracking-wider border-3 border-anime-black transition-all ${selectedSubCategory === subCat
-                              ? 'bg-anime-blue text-white shadow-pop'
-                              : 'bg-white text-black hover:bg-gray-100'
+                            ? 'bg-anime-blue text-white shadow-pop'
+                            : 'bg-white text-black hover:bg-gray-100'
                             }`}
                         >
                           {subCat}

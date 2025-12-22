@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { MangaButton } from '../components/ui/MangaButton';
+import { ProductDetailsTabs } from '../components/ProductDetailsTabs';
 import { Star, ShoppingCart, Heart, Share2, ShieldCheck, ArrowRight } from 'lucide-react';
 export function ProductDetailPage() {
-  const {
-    id
-  } = useParams();
+  // const { id } = useParams(); // Unused for now, can be used for API calls later
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(0);
@@ -170,8 +169,8 @@ export function ProductDetailPage() {
                 <button
                   onClick={() => setIsWishlisted(!isWishlisted)}
                   className={`p-3 border-3 border-anime-black font-black transition-all transform hover:scale-105 ${isWishlisted
-                      ? 'bg-anime-red text-white hover:bg-red-600'
-                      : 'bg-white text-anime-black hover:bg-red-50'
+                    ? 'bg-anime-red text-white hover:bg-red-600'
+                    : 'bg-white text-anime-black hover:bg-red-50'
                     }`}
                 >
                   <Heart className={`w-6 h-6 mx-auto ${isWishlisted ? 'fill-current' : ''}`} />
@@ -194,6 +193,11 @@ export function ProductDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Product Details Tabs Section */}
+        <div className="mt-16">
+          <ProductDetailsTabs product={product} />
         </div>
 
         {/* Related Products Section */}
