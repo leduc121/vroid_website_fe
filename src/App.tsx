@@ -9,6 +9,8 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
+
 export function App() {
   return <BrowserRouter basename="/vroid_website_fe">
     <Routes>
@@ -18,6 +20,7 @@ export function App() {
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/product/:id" element={<ProductDetailPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/about" element={<AboutPage />} />

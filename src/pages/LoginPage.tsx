@@ -120,6 +120,7 @@ export function LoginPage() {
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
+                onClick={() => window.location.href = 'http://localhost:3001/api/auth/facebook'}
                 className="flex items-center justify-center gap-2 p-3 border-4 border-black rounded-lg bg-[#1877F2] hover:bg-[#166FE5] text-white transition-all font-black shadow-[4px_4px_0px_0px_#000] hover:shadow-[6px_6px_0px_0px_#000] hover:translate-x-[-2px] hover:translate-y-[-2px]"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -129,6 +130,7 @@ export function LoginPage() {
               </button>
               <button
                 type="button"
+                onClick={() => window.location.href = 'http://localhost:3001/api/auth/google'}
                 className="flex items-center justify-center gap-2 p-3 border-4 border-black rounded-lg bg-white hover:bg-gray-50 transition-all font-black shadow-[4px_4px_0px_0px_#000] hover:shadow-[6px_6px_0px_0px_#000] hover:translate-x-[-2px] hover:translate-y-[-2px]"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24">
