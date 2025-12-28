@@ -10,6 +10,7 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
+import { CartPage } from './pages/CartPage';
 
 export function App() {
   return <BrowserRouter basename="/vroid_website_fe">
@@ -18,6 +19,7 @@ export function App() {
       <Route path="/shop" element={<ShopPage />} />
       <Route path="/ai-studio" element={<AIStudioPage />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/cart" element={<CartPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
