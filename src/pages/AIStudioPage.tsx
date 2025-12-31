@@ -3,6 +3,7 @@ import { Header } from '../components/Header';
 import { MangaButton } from '../components/ui/MangaButton';
 import { Sparkles, Download, AlertCircle, Loader2 } from 'lucide-react';
 import { IntlText } from '../i18n';
+import * as aiStudioApi from '../services/aiStudioApi';
 
 // Category structure for Image-to-Image AI model
 const categories = {
@@ -18,8 +19,12 @@ export function AIStudioPage() {
   const [prompt, setPrompt] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category | ''>('');
   const [selectedSubCategory, setSelectedSubCategory] = useState('');
+  const [selectedVRMModel, setSelectedVRMModel] = useState<'Male' | 'Female' | ''>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isGeneratingVRM, setIsGeneratingVRM] = useState(false);
   const [generatedImage, setGeneratedImage] = useState('');
+  const [generationId, setGenerationId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [publishMessage, setPublishMessage] = useState('');
 
@@ -44,14 +49,73 @@ export function AIStudioPage() {
       setError(`Prompt must be less than ${MAX_PROMPT_LENGTH} characters`);
       return;
     }
+
     setError('');
+    setPublishMessage('');
     setIsGenerating(true);
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      const result = await aiStudioApi.generateTexture({
+        prompt,
+        category: selectedCategory,
+        subCategory: selectedSubCategory,
+      });
+
+      setGeneratedImage(result.imageUrl);
+      setGenerationId(result.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate texture. Please try again.');
+      setGeneratedImage('');
+      setGenerationId(null);
+    } finally {
       setIsGenerating(false);
-      setGeneratedImage('https://images.unsplash.com/photo-1558769132-cb1aea1c8f86?w=600');
-    }, 3000);
+    }
   };
+
+  const handleDownload = async () => {
+    if (!generationId) {
+      setError('No texture to download. Please generate one first.');
+      return;
+    }
+
+    setIsDownloading(true);
+    setError('');
+
+    try {
+      await aiStudioApi.downloadTexture(generationId);
+      setPublishMessage('✅ Texture downloaded successfully!');
+      setTimeout(() => setPublishMessage(''), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to download texture. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleDownloadVRM = async () => {
+    if (!generationId) {
+      setError('No texture to download. Please generate one first.');
+      return;
+    }
+    if (!selectedVRMModel) {
+      setError('Please select a VRM model first.');
+      return;
+    }
+
+    setIsGeneratingVRM(true);
+    setError('');
+
+    try {
+      await aiStudioApi.generateAndDownloadVRM(generationId, selectedVRMModel);
+      setPublishMessage('🎉 VRM file downloaded successfully!');
+      setTimeout(() => setPublishMessage(''), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate VRM. Please try again.');
+    } finally {
+      setIsGeneratingVRM(false);
+    }
+  };
+
   const handlePublishToShop = () => {
     if (!generatedImage) {
       setPublishMessage('Generate an asset first');
@@ -238,11 +302,71 @@ export function AIStudioPage() {
                 </div>}
               </div>
 
-              {generatedImage && !isGenerating && <div className="mt-6 space-y-3">
-                <MangaButton variant="accent" size="lg" className="w-full">
-                  <Download className="w-5 h-5 mr-2" />
-                  <IntlText en="Download Asset" ja="アセットをダウンロード" vi="Tải asset" />
-                </MangaButton>
+              {generatedImage && !isGenerating && <div className="mt-6 space-y-4">
+                {/* VRM Model Selection */}
+                <div>
+                  <label className="block text-sm font-black uppercase tracking-wider mb-2">
+                    <IntlText en="VRM Model" ja="VRMモデル" vi="Mô hình VRM" />
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['Male', 'Female'] as const).map(model => (
+                      <button
+                        key={model}
+                        onClick={() => setSelectedVRMModel(model)}
+                        className={`px-3 py-2 font-bold uppercase text-sm tracking-wider border-3 border-anime-black transition-all ${selectedVRMModel === model
+                          ? 'bg-anime-blue text-white shadow-pop'
+                          : 'bg-white text-black hover:bg-gray-100'
+                          }`}
+                      >
+                        {model}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Download Buttons */}
+                <div className="space-y-2">
+                  <MangaButton
+                    variant="accent"
+                    size="lg"
+                    className="w-full"
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                  >
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        <IntlText en="Downloading..." ja="ダウンロード中..." vi="Đang tải..." />
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-5 h-5 mr-2" />
+                        <IntlText en="Download Texture PNG" ja="テクスチャPNGをダウンロード" vi="Tải Texture PNG" />
+                      </>
+                    )}
+                  </MangaButton>
+
+                  <MangaButton
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    onClick={handleDownloadVRM}
+                    disabled={isGeneratingVRM || !selectedVRMModel}
+                  >
+                    {isGeneratingVRM ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        <IntlText en="Generating VRM..." ja="VRM生成中..." vi="Đang tạo VRM..." />
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5 mr-2 fill-current" />
+                        <IntlText en="Download Complete VRM" ja="完全なVRMをダウンロード" vi="Tải VRM Hoàn Chỉnh" />
+                      </>
+                    )}
+                  </MangaButton>
+                </div>
+
                 <MangaButton variant="secondary" size="md" className="w-full" onClick={handlePublishToShop}>
                   <IntlText en="Publish to Shop" ja="ショップに公開" vi="Đăng lên Shop" />
                 </MangaButton>
